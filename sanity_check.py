@@ -33,7 +33,7 @@ conn = psycopg2.connect(
 
 cur = conn.cursor()
 
-
+#%%
 
 # czy któregoś słodycza zostało mniej niż 0
 cur.execute("SELECT * FROM slodycz_w_magazynie;")
