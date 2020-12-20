@@ -108,7 +108,7 @@ total = np.sum(ilosci)
 prob = ilosci/total
 paczki = []
 
-n_paczek = int(total/per_paczka) - 100
+n_paczek = int(total/per_paczka) - 95
 for i in range(n_paczek):
     paczka = []
     while len(paczka) < 10:
@@ -116,7 +116,7 @@ for i in range(n_paczek):
         paczka.append(slodycze[los])
     paczki.append(paczka)
 
-#%%
+
 
 def indexof(szukany):
     for i,s in enumerate(slodycze):
@@ -133,10 +133,13 @@ for paczka in paczki:
         wyniki[i] += 1
 
 print(np.sum(wyniki), np.sum(ilosci))
+
+print(wyniki > ilosci)
 #%%
 import codecs
 
 with codecs.open(POPULATE_FILE, "w+", "utf-8") as file:
+    file.write("\\c test_db;\n\n")
     for s,i in zip(slodycze,ilosci):
         file.write(f"INSERT INTO slodycz_w_magazynie VALUES ('{s}',{i});\n")
     file.write("\n\n")
@@ -158,6 +161,10 @@ ppe = int(len(paczki)/ILOSC_ELFOW)
 
 for i in range(ILOSC_ELFOW):
     paczki_json[f"elf-{i}"] = paczki[i:min(len(paczki), ppe*(i+1))]
+
+paczki_json["slodycze"] = {}
+for slodycz,ilosc in zip(slodycze, ilosci):
+    paczki_json["slodycze"][slodycz] = str(ilosc)
 
 with codecs.open(PACZKI_FILE, "w+", "utf-8") as file:
     file.write(json.dumps(paczki_json))

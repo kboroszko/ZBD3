@@ -1,3 +1,6 @@
+;
+\c test_db;
+
 CREATE TABLE slodycz_w_magazynie
     (nazwa VARCHAR,
     ilosc_pozostalych INT CHECK ( ilosc_pozostalych >= 0 ));
