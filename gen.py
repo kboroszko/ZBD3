@@ -78,6 +78,8 @@ n=len(slodycze)
 podobienstwa = np.random.rand(n,n)
 podobienstwa[podobienstwa > 0.982] = 1
 podobienstwa[podobienstwa < 0.999] = 0
+podobienstwa[:,0] = 1
+podobienstwa[0,:] = 1
 
 for i in range(n):
     for j in range(n):
@@ -87,6 +89,7 @@ for i in range(n):
 plt.matshow(podobienstwa)
 #%%
 ilosci = 75 + (np.random.rand(n)*25).astype(np.int)
+ilosci[0] += 200
 
 fig, ax = plt.subplots()
 
@@ -99,7 +102,7 @@ plt.subplots_adjust(bottom=0.35)
 #%%
 print('srednio:', np.mean(ilosci))
 print('najwiecej', slodycze[np.argmax(ilosci)], np.max(ilosci))
-print('najwiecej', slodycze[np.argmin(ilosci)], np.min(ilosci))
+print('najmniej', slodycze[np.argmin(ilosci)], np.min(ilosci))
 
 
 #%%
@@ -108,10 +111,13 @@ total = np.sum(ilosci)
 prob = ilosci/total
 paczki = []
 
-n_paczek = int(total/per_paczka) - 95
+n_paczek = int(total/per_paczka) - 110
+print('paczek', n_paczek)
+print('ppe', n_paczek/20)
+
 for i in range(n_paczek):
     paczka = []
-    while len(paczka) < 10:
+    while len(paczka) < per_paczka:
         los = random.randint(0,n-1)
         paczka.append(slodycze[los])
     paczki.append(paczka)
@@ -160,7 +166,7 @@ paczki_json = {}
 ppe = int(len(paczki)/ILOSC_ELFOW)
 
 for i in range(ILOSC_ELFOW):
-    paczki_json[f"elf-{i}"] = paczki[i:min(len(paczki), ppe*(i+1))]
+    paczki_json[f"elf-{i}"] = paczki[ppe*i:min(len(paczki), ppe*(i+1))]
 
 paczki_json["slodycze"] = {}
 for slodycz,ilosc in zip(slodycze, ilosci):

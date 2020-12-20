@@ -2,10 +2,28 @@ import psycopg2
 import json
 
 slodycze = None
+paczki = []
 with open("paczki.json", "r") as file:
     data = json.load(file)
     slodycze = data["slodycze"]
+    for i in range(20):
+        paczki += data[f"elf-{i}"]
 
+ret = {}
+for paczka in paczki:
+    for produkt in paczka:
+        if produkt in ret:
+            ret[produkt] += 1
+        else:
+            ret[produkt] = 1
+
+deficyt = 0
+for k in ret:
+    if int(slodycze[k]) < ret[k] :
+        deficyt += ret[k] - int(slodycze[k])
+print('deficyt', deficyt)
+print('babeczki', int(slodycze['Babeczka śmietankowa']))
+print('babeczki - deficyt', int(slodycze['Babeczka śmietankowa']) - deficyt)
 
 conn = psycopg2.connect(
     host="192.168.56.56",
@@ -38,6 +56,8 @@ for s in slodycze:
     if int(slodycze[s]) != int(slodycze_w_bazie[s]):
         print("ERROR")
         print(s, "AT START", slodycze[s], "AT END", slodycze_w_bazie[s])
+
+
 
 print("success")
 cur.close()

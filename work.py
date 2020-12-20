@@ -1,6 +1,7 @@
 import psycopg2
 import json
-
+import sys
+from psycopg2 import extensions
 #%%
 def get_ilosci(paczka):
     ret = {}
@@ -11,14 +12,18 @@ def get_ilosci(paczka):
             ret[produkt] = 1
     return ret
 
+
 #%%
-id = 0
+# id = 0
+id = int(sys.argv[1])
 paczki = None
 with open("paczki.json", "r") as file:
     data = json.load(file)
     paczki = data[f"elf-{id}"]
 
+print("elf", id, "paczki", len(paczki))
 
+#%%
 # BEGIN;
 
 conn = psycopg2.connect(
@@ -27,12 +32,22 @@ conn = psycopg2.connect(
     user="windows",
     password="lalala123")
 
+conn.set_isolation_level(extensions.ISOLATION_LEVEL_SERIALIZABLE)
+
 cur = conn.cursor()
 
 #%%
+wyciagniete = {}
+def wyciagnij(nazwa, ilosc):
+    if nazwa in wyciagniete:
+        wyciagniete[nazwa] = ilosc + wyciagniete[nazwa]
+    else:
+        wyciagniete[nazwa] = ilosc
 
+counter = 0
+kupa = False
 for p in paczki:
-    paczka = get_ilosci(paczki[0])
+    paczka = get_ilosci(p)
     #  -- tworzymy paczkę
     # INSERT INTO paczka (...) RETURNING id;
     cur.execute("INSERT INTO paczka (kraj, opis) VALUES (%s, %s) RETURNING id;", ('Polska', 'bla bla bla'))
@@ -47,6 +62,7 @@ for p in paczki:
         ilosc = cur.fetchone()[0]
         wybrany = ""
         if ilosc < paczka[produkt]:
+            print("zamieniam")
             # -- nie ma dwóch czekolad, więc sprawdzamy do czego jest podobna czekolada studencka
             # SELECT .... FROM podobny_slodycz...
             cur.execute('SELECT podobny_do FROM podobny_slodycz WHERE ktory_slodycz = %s AND podobienstwo > 0;', (produkt,))
@@ -60,7 +76,8 @@ for p in paczki:
             wybrany = produkt
 
         if wybrany == "":
-            print("KUPA, PACZKA", paczka_id, "NIEUDANA!")
+            kupa = True
+            print("KUPA, PACZKA", paczka_id, "NIEUDANA!", paczka)
             print("brakowalo", produkt)
             conn.rollback()
             break
@@ -70,7 +87,14 @@ for p in paczki:
 
         cur.execute("INSERT INTO slodycz_w_paczce VALUES (%s, %s, %s);", (paczka_id, wybrany, paczka[produkt]))
         cur.execute("UPDATE slodycz_w_magazynie SET ilosc_pozostalych = ilosc_pozostalych - %s WHERE nazwa=%s", (paczka[produkt],wybrany))
-    conn.commit()
+        wyciagnij(wybrany, paczka[produkt])
+    if kupa:
+        print("elf",id, 'skonczyl', counter, 'paczek')
+        break
+    else:
+        conn.commit()
+        counter += 1
 
+print(f'elf-{id},ile_paczek,{len(paczki)},ile_ok,{counter},ile_zle,{len(paczki) - counter}')
 cur.close()
 conn.close()

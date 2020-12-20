@@ -3,7 +3,7 @@
 
 CREATE TABLE slodycz_w_magazynie
     (nazwa VARCHAR,
-    ilosc_pozostalych INT CHECK ( ilosc_pozostalych >= 0 ));
+    ilosc_pozostalych INT CHECK ( ilosc_pozostalych > -1 ));
 
 CREATE TABLE paczka
     (Id INT GENERATED ALWAYS AS IDENTITY,
